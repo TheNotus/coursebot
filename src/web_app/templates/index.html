@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Темы курсов{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Темы курсов</h1>
+
+<div class="mb-3">
+    <a href="/topics/add" class="btn btn-success">Добавить новую тему</a>
+    <a href="/admin/menu_items" class="btn btn-info ms-2">Управление пунктами меню</a>
+    <a href="/promotions" class="btn btn-warning ms-2">Управление акциями</a>
+    {% for item in menu_items %}
+        {% if item.url_link %}
+            <a href="{{ item.url_link }}" class="btn btn-primary ms-2">{{ item.title }}</a>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<div class="list-group">
+    {% for topic in topics %}
+        <div class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ topic[1] }}</h5>
+                <div>
+                    <a href="/topics/{{ topic[0] }}/courses" class="btn btn-primary btn-sm me-2">Просмотреть курсы</a>
+                    <a href="/topics/edit/{{ topic[0] }}" class="btn btn-warning btn-sm me-2">Редактировать</a>
+                    <form action="/topics/delete/{{ topic[0] }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Вы уверены, что хотите удалить эту тему?')">Удалить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

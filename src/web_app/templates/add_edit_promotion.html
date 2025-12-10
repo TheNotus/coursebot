@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}{% if promotion %}Редактировать акцию{% else %}Добавить новую акцию{% endif %}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">{% if promotion %}Редактировать акцию{% else %}Добавить новую акцию{% endif %}</h1>
+        
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+        
+        <form method="post" enctype="multipart/form-data" id="promotion-form">
+            <div class="mb-3">
+                <label for="name" class="form-label">Название акции</label>
+                <input type="text" class="form-control" id="name" name="name" value="{% if promotion %}{{ promotion.name }}{% endif %}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Описание акции</label>
+                <textarea class="form-control" id="description" name="description" rows="3">{% if promotion %}{{ promotion.description }}{% endif %}</textarea>
+                <small class="form-text text-muted">Длина описания: <span id="desc_counter">0</span>/1024 символов</small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="course_link" class="form-label">Ссылка на курс</label>
+                <input type="text" class="form-control" id="course_link" name="course_link" value="{% if promotion %}{{ promotion.course_link }}{% endif %}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="discounted_price" class="form-label">Цена по акции</label>
+                <input type="number" step="0.01" class="form-control" id="discounted_price" name="discounted_price" min="0" value="{% if promotion %}{{ promotion.discounted_price }}{% endif %}">
+            </div>
+            
+            <div class="mb-3">
+                <label for="start_date" class="form-label">Дата начала</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" value="{% if promotion %}{{ promotion.start_date }}{% endif %}">
+            </div>
+            
+            <div class="mb-3">
+                <label for="end_date" class="form-label">Дата окончания</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" value="{% if promotion %}{{ promotion.end_date }}{% endif %}">
+            </div>
+            
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="is_period_enabled" name="is_period_enabled" {% if promotion and promotion.is_period_enabled %}checked{% endif %}>
+                <label class="form-check-label" for="is_period_enabled">Срок действия включен</label>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="is_price_enabled" name="is_price_enabled" {% if promotion and promotion.is_price_enabled %}checked{% endif %}>
+                <label class="form-check-label" for="is_price_enabled">Цена включена</label>
+            </div>
+            
+            {% if promotion and promotion.image_path %}
+            <div class="mb-3">
+                <label for="current-image" class="form-label">Текущее изображение</label><br>
+                <img src="{{ url_for('static', path=promotion.image_path.replace('src/web_app/static/', '')) }}" alt="Текущее изображение акции" style="max-width: 200px; max-height: 200px;" loading="lazy">
+            </div>
+            {% endif %}
+            <div class="mb-3">
+                <label for="image" class="form-label">Изображение акции</label>
+                <input type="file" name="image" class="form-control-file" id="image" accept="image/*">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">{% if promotion %}Сохранить изменения{% else %}Добавить акцию{% endif %}</button>
+            <a href="/promotions" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', path='js/promotions.js') }}"></script>
+    <script>
+        // JavaScript для динамического включения/отключения полей
+        document.addEventListener('DOMContentLoaded', function() {
+            const periodCheckbox = document.getElementById('is_period_enabled');
+            const priceCheckbox = document.getElementById('is_price_enabled');
+            const startDateInput = document.getElementById('start_date');
+            const endDateInput = document.getElementById('end_date');
+            const priceInput = document.getElementById('discounted_price');
+
+            // Функция для обновления состояния полей даты
+            function updateDateFields() {
+                if (periodCheckbox) {
+                    const isEnabled = periodCheckbox.checked;
+                    if (startDateInput) {
+                        startDateInput.required = isEnabled;
+                        startDateInput.disabled = !isEnabled;
+                        if (isEnabled) {
+                            startDateInput.classList.remove('disabled-field');
+                        } else {
+                            startDateInput.classList.add('disabled-field');
+                        }
+                    }
+                    if (endDateInput) {
+                        endDateInput.required = isEnabled;
+                        endDateInput.disabled = !isEnabled;
+                        if (isEnabled) {
+                            endDateInput.classList.remove('disabled-field');
+                        } else {
+                            endDateInput.classList.add('disabled-field');
+                        }
+                    }
+                }
+            }
+
+            // Функция для обновления состояния поля цены
+            function updatePriceField() {
+                if (priceCheckbox) {
+                    const isEnabled = priceCheckbox.checked;
+                    if (priceInput) {
+                        priceInput.required = isEnabled;
+                        priceInput.disabled = !isEnabled;
+                        if (isEnabled) {
+                            priceInput.classList.remove('disabled-field');
+                        } else {
+                            priceInput.classList.add('disabled-field');
+                        }
+                    }
+                }
+            }
+
+            // Назначаем обработчики событий
+            if (periodCheckbox) {
+                periodCheckbox.addEventListener('change', updateDateFields);
+            }
+            if (priceCheckbox) {
+                priceCheckbox.addEventListener('change', updatePriceField);
+            }
+
+            // Инициализируем состояния полей при загрузке страницы
+            updateDateFields();
+            updatePriceField();
+
+            // Подсчет символов для описания акции
+            const descriptionInput = document.getElementById('description');
+            const counterElement = document.getElementById('desc_counter');
+            
+            if (descriptionInput && counterElement) {
+                // Обновляем счетчик при загрузке страницы
+                updateCounter(descriptionInput, counterElement);
+                
+                // Обновляем счетчик при каждом вводе символа
+                descriptionInput.addEventListener('input', function() {
+                    updateCounter(descriptionInput, counterElement);
+                });
+            }
+
+            // Функция для обновления счетчика
+            function updateCounter(input, counterEl) {
+                const currentLength = input.value.length;
+                counterEl.textContent = currentLength;
+            }
+
+            // Обработка предпросмотра изображения
+            const imageInput = document.getElementById('image');
+            
+            if (imageInput) {
+                imageInput.addEventListener('change', function(event) {
+                    handleImagePreview(event, imageInput);
+                });
+            }
+
+            function handleImagePreview(event, inputElement) {
+                const [file] = inputElement.files;
+                const existingPreviewContainer = document.getElementById('image-preview-container');
+
+                // Если файл выбран
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        let previewContainer = existingPreviewContainer;
+                        if (!previewContainer) {
+                            previewContainer = document.createElement('div');
+                            previewContainer.id = 'image-preview-container';
+                            previewContainer.classList.add('mb-3');
+                            
+                            const label = document.createElement('label');
+                            label.classList.add('form-label');
+                            label.textContent = 'Предварительный просмотр нового изображения';
+                            previewContainer.appendChild(label);
+                            previewContainer.appendChild(document.createElement('br'));
+                            
+                            // Вставляем контейнер предросмотра после поля ввода изображения
+                            inputElement.insertAdjacentElement('afterend', previewContainer);
+                        }
+
+                        // Удаляем существующее изображение предпросмотра, если оно есть
+                        const existingPreviewImage = previewContainer.querySelector('img');
+                        if (existingPreviewImage) {
+                            existingPreviewImage.remove();
+                        }
+
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.maxWidth = '200px';
+                        img.style.maxHeight = '200px';
+                        img.classList.add('mt-2');
+                        previewContainer.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // Если файл не выбран, удаляем контейнер предпросмотра, если он существует
+                    if (existingPreviewContainer) {
+                        existingPreviewContainer.remove();
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', path='js/promotions.js') }}"></script>
+{% endblock %}

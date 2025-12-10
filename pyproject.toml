@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "vless-shopbot"
+version = "0.1.0"
+description = "Telegram bot for selling courses."
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+aiogram = "^3.0.0"
+python-dotenv = "^1.0.0"
+aiosqlite = "^0.19.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

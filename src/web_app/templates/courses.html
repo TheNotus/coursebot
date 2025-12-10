@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Курсы - {{ topic[1] }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Курсы - {{ topic[1] }}</h1>
+
+<div class="mb-3">
+    <a href="/topics/{{ topic[0] }}/courses/add" class="btn btn-success">Добавить новый курс</a>
+    <a href="/" class="btn btn-secondary">Назад к темам</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Цена</th>
+                <th>Изображение</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for course in courses %}
+            <tr>
+                <td>{{ course[1] }}</td>
+                <td>{{ course[2] }}</td>
+                <td>{{ course[3] }} руб.</td>
+                <td>
+                    {% if course[4] %}
+                    <img src="{{ url_for('static', path=course[4].replace('src/web_app/static/', '')) }}" alt="Изображение курса" style="max-width: 100px; max-height: 100px;" loading="lazy">
+                    {% else %}
+                    Нет изображения
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/topics/{{ current_topic_id }}/courses/{{ course[0] }}/edit" class="btn btn-warning btn-sm me-2">Редактировать</a>
+                    <form action="/topics/{{ current_topic_id }}/courses/{{ course[0] }}/delete" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Вы уверены, что хотите удалить этот курс?')">Удалить</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}{% if topic %}Редактировать тему{% else %}Добавить новую тему{% endif %}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">{% if topic %}Редактировать тему{% else %}Добавить новую тему{% endif %}</h1>
+
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    {{ error }}
+</div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="name" class="form-label">Название темы</label>
+        <input type="text" class="form-control" id="name" name="name" value="{% if topic %}{{ topic[1] }}{% endif %}" required>
+        <small class="form-text text-muted">Длина названия: <span id="name_counter">0</span>/100 символов</small>
+    </div>
+    
+    <div class="mb-3">
+        <label for="image" class="form-label">Изображение для темы</label>
+        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+        <div class="mt-2">
+            <img id="image_preview" src="" alt="Предварительный просмотр изображения" style="max-width: 200px; max-height: 200px; display: none;" class="img-thumbnail">
+        </div>
+        {% if topic and topic[3] %}
+        <div class="mt-2">
+            <p>Текущее изображение:</p>
+            {% if topic[3].startswith('src/web_app/static/img/topics/') %}
+                {% set img_path = topic[3][len('src/web_app/static/img/topics/'):] %}
+                <img src="/topics_img/{{ img_path }}" alt="Текущее изображение темы" style="max-width: 200px; max-height: 200px;" class="img-thumbnail" loading="lazy">
+            {% elif topic[3].startswith('/topics_img/') %}
+                <img src="{{ topic[3] }}" alt="Текущее изображение темы" style="max-width: 200px; max-height: 200px;" class="img-thumbnail" loading="lazy">
+            {% else %}
+                <img src="{{ topic[3] }}" alt="Текущее изображение темы" style="max-width: 200px; max-height: 200px;" class="img-thumbnail" loading="lazy">
+            {% endif %}
+            <div class="form-check mt-2">
+                <input type="checkbox" class="form-check-input" id="remove_image" name="remove_image">
+                <label class="form-check-label" for="remove_image">Удалить текущее изображение</label>
+            </div>
+        {% endif %}
+    </div>
+    
+    <button type="submit" class="btn btn-primary">{% if topic %}Сохранить изменения{% else %}Добавить тему{% endif %}</button>
+    <a href="/" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Подсчет символов для названия темы
+        const nameInput = document.getElementById('name');
+        const counterElement = document.getElementById('name_counter');
+        
+        // Элементы для предпросмотра изображения
+        const imageInput = document.getElementById('image');
+        const imagePreview = document.getElementById('image_preview');
+        
+        if (nameInput && counterElement) {
+            // Обновляем счетчик при загрузке страницы
+            updateCounter(nameInput, counterElement);
+            
+            // Обновляем счетчик при каждом вводе символа
+            nameInput.addEventListener('input', function() {
+                updateCounter(nameInput, counterElement);
+            });
+        }
+
+        // Функция для обновления счетчика
+        function updateCounter(input, counterEl) {
+            const currentLength = input.value.length;
+            counterEl.textContent = currentLength;
+        }
+        
+        // Обработка предпросмотра изображения
+        if (imageInput && imagePreview) {
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(event) {
+                        imagePreview.src = event.target.result;
+                        imagePreview.style.display = 'block';
+                    }
+                    
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.style.display = 'none';
+                    imagePreview.src = '';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
