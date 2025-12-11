@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "vless-shopbot"
+name = "coursebot"
 version = "0.1.0"
 description = "Telegram bot for selling courses."
 authors = ["Your Name <your.email@example.com>"]
